@@ -5,14 +5,14 @@ provider "azurerm" {
 # Create a resource group
 resource "azurerm_resource_group" "hero-app-rg" {
   name     = "hero-app-rg"
-  location = "West US"
+  location = "westus2"
 }
 
 # Create a virtual network
 resource "azurerm_virtual_network" "hero-app-vnet" {
     name                = "hero-app-vnet"
     address_space       = ["10.0.0.0/16"]
-    location            = "westus2"
+    location            = azurerm_resource_group.hero-app-rg.location
     resource_group_name = azurerm_resource_group.hero-app-rg.name
 }
 
@@ -27,7 +27,7 @@ resource "azurerm_subnet" "hero-app-subnet" {
 # Create public IP
 resource "azurerm_public_ip" "hero-app-public-ip" {
   name                = "hero-app-public-ip"
-  location            = "westus2"
+  location            = azurerm_resource_group.hero-app-rg.location
   resource_group_name = azurerm_resource_group.hero-app-rg.name
   allocation_method   = "Static"
 }
@@ -36,7 +36,7 @@ resource "azurerm_public_ip" "hero-app-public-ip" {
 # Create Network Security Group and rule
 resource "azurerm_network_security_group" "hero-app-nsg" {
   name                = "hero-app-nsg"
-  location            = "westus2"
+  location            = azurerm_resource_group.hero-app-rg.location
   resource_group_name = azurerm_resource_group.hero-app-rg.name
 
   security_rule {
@@ -55,7 +55,7 @@ resource "azurerm_network_security_group" "hero-app-nsg" {
 # Create network interface
 resource "azurerm_network_interface" "hero-app-nic" {
   name                      = "hero-app-nic"
-  location                  = "westus2"
+  location                  = azurerm_resource_group.hero-app-rg.location
   resource_group_name       = azurerm_resource_group.hero-app-rg.name
 
   ip_configuration {
@@ -67,42 +67,36 @@ resource "azurerm_network_interface" "hero-app-nic" {
 }
 
 # Create a Linux virtual machine
-resource "azurerm_virtual_machine" "hero-app-vm" {
+resource "azurerm_linux_virtual_machine" "hero-app-vm" {
   name                  = "hero-app-vm"
-  location              = "westus2"
+  location              = azurerm_resource_group.hero-app-rg.location
   resource_group_name   = azurerm_resource_group.hero-app-rg.name
   network_interface_ids = [azurerm_network_interface.hero-app-nic.id]
-  vm_size               = "Standard_D2as_v4"
+  size                  = "Standard_D2as_v4"
+  admin_username        = "ansible"
 
-  storage_os_disk {
-    name              = "hero-app-disk"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Premium_LRS"
+  os_disk {
+    caching              =  "ReadWrite"
+    storage_account_type = "Standard_LRS"
   }
 
-  storage_image_reference {
+  source_image_reference {
     publisher = "Canonical"
     offer     = "UbuntuServer"
     sku       = "18_04-lts-gen2"
     version   = "18.04.202105120"
   }
 
-  os_profile {
-    computer_name  = "hero-app-server"
-    admin_username = var.admin_username
-    admin_password = var.admin_password
-  }
-
-  os_profile_linux_config {
-    disable_password_authentication = false
+  admin_ssh_key {
+    username   = "ansible"
+    public_key = file("~/.ssh/id_azure_ansible_terraform.pub")
   }
 }
 
 data "azurerm_public_ip" "ip" {
   name                = azurerm_public_ip.hero-app-public-ip.name
-  resource_group_name = azurerm_virtual_machine.hero-app-vm.resource_group_name
-  depends_on          = [azurerm_virtual_machine.hero-app-vm]
+  resource_group_name = azurerm_linux_virtual_machine.hero-app-vm.resource_group_name
+  depends_on          = [azurerm_linux_virtual_machine.hero-app-vm]
 }
 
 output "public_ip_address" {
