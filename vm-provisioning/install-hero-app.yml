@@ -1,0 +1,41 @@
+- hosts: all
+  become: true
+  tasks:
+    - name: add apt key
+      ansible.builtin.apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        keyring: /usr/share/keyrings/docker-archive-keyring.gpg
+
+    - name: add docker ce repo
+      ansible.builtin.apt_repository:
+        repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu   bionic stable"
+
+    - name: install docker ce
+      ansible.builtin.apt:
+        name: "{{ item }}"
+      loop:
+        - docker-ce
+        - docker-ce-cli
+        - containerd.io
+        - python3-pip
+
+    - name: start docker as service
+      ansible.builtin.service:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: install needed python libs
+      ansible.builtin.pip:
+        executable: /usr/bin/pip3
+        name:
+          - docker-py
+          # - setuptools
+
+    - name: start hero app docker container
+      community.docker.docker_container:
+          name: my-hero-app
+          image: sparsick/spring-boot-demo
+          state: started
+          ports:
+            - 80:8080

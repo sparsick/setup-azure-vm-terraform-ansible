@@ -10,8 +10,9 @@ Demo how to provision VMs in Azure with Terraform and Ansible
 [Install Ansible]() and the following Python lib and Ansible Collection:
 
 ```shell
-pip install azure-cli
+pip install azure-cli 
 ansible-galaxy collection install azure.azcollection
+ansible-galaxy collection install community.docker
 ```
 
 
