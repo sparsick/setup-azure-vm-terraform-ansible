@@ -74,6 +74,9 @@ resource "azurerm_linux_virtual_machine" "hero-app-vm" {
   network_interface_ids = [azurerm_network_interface.hero-app-nic.id]
   size                  = "Standard_D2as_v4"
   admin_username        = "ansible"
+  tags                  = {
+      app = "hero"
+  }
 
   os_disk {
     caching              =  "ReadWrite"

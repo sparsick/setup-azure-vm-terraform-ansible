@@ -12,12 +12,11 @@
 
     - name: install docker ce
       ansible.builtin.apt:
-        name: "{{ item }}"
-      loop:
-        - docker-ce
-        - docker-ce-cli
-        - containerd.io
-        - python3-pip
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - python3-pip
 
     - name: start docker as service
       ansible.builtin.service:
@@ -30,7 +29,6 @@
         executable: /usr/bin/pip3
         name:
           - docker-py
-          # - setuptools
 
     - name: start hero app docker container
       community.docker.docker_container:

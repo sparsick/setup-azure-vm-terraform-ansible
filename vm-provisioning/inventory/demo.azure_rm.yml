@@ -1,7 +1,7 @@
 plugin: azure.azcollection.azure_rm
 include_vm_resource_groups:
   - hero-app-rg
-auth_source: cli
-# keyed_groups:
-# - prefix: tag
-#   key: tags
+auth_source: auto
+keyed_groups:
+- prefix: tag
+  key: tags
