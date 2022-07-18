@@ -3,11 +3,11 @@ Demo how to provision VMs in Azure with Terraform and Ansible
 
 ## Setup Azure Infrastructure With Terraform
 
-This sample is tested with Terraform v0.15.3.
+This sample is tested with Terraform v1.2.5 .
 
 You need to [install Terraform](https://www.terraform.io/downloads.html) to run the sample.
 
-In the folder `setup-aure-infra` there is Terraform script that setup following Azure resources:
+In the folder `setup-azure-infra` there is Terraform script that setup following Azure resources:
 
 - Resource group
 - Virtual Network
@@ -17,7 +17,7 @@ In the folder `setup-aure-infra` there is Terraform script that setup following 
 - Network Interface
 - Linux Virtual Machine
 
-As Terraform Provider [hashicorp/azurerm](https://registry.terraform.io/providers/hashicorp/azurerm/latest) is used.
+As Terraform Provider [hashicorp/azurerm](https://registry.terraform.io/providers/hashicorp/azurerm/latest) is used (Tested with v2.59.0).
 
 Before running the terraform script, you have to decide which [authentication method](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#authenticating-to-azure) you want to use for Terraform.
 
@@ -31,6 +31,8 @@ terraform apply # create the Azure resources
 terraform destroy # destroy all Azure resources
 ```
 
+**NOTE:** You need a SSH key named `~/.ssh/id_azure_ansible_terraform` or adjust in `main.tf` the file name for resource `admin_ssh_key`.
+
 After a `terraform apply` the IP address of the Vm will be shown.
 
 ```shell
@@ -43,14 +45,16 @@ public_ip_address = "20.94.225.48"
 
 ## Server provisioning with Ansible
 
+This sample is tested with Ansible Core v2.12.7.
+
 ## Local Setup
 
 You need to [install Ansible](https://docs.ansible.com/ansible-core/devel/installation_guide/intro_installation.html), the following Python lib and Ansible Collection that is defined in `requirements.yml`:
 
 ```shell
 cd vm-provisioning
-pip install azure-cli
 ansible-galaxy collection install -r requirements.yml
+pip install -r ~/.ansible/collections/ansible_collections/azure/azcollection/requirements-azure.txt
 ```
 
 Before running the sample, you have to decide which [authentication method](https://docs.ansible.com/ansible/latest/collections/azure/azcollection/azure_rm_inventory.html#parameter-auth_source) you want to use for Ansible.
@@ -78,6 +82,8 @@ To start the provisioning all VM of the defined resource group, you run
 ```shell
  ansible-playbook  -i inventory/demo.azure_rm.yml install-hero-app.yml
 ```
+
+**NOTE:** You need a SSH key named `~/.ssh/id_azure_ansible_terraform` or adjust in `vm-provision/ansible.cfg` the value for `private_key_file`. The important issue that Ansible is using the same SSH key as Terraform above.
 
 If you want to limit to a specific Vm of the resource group, you have to limit it with the help of the tags.
 
